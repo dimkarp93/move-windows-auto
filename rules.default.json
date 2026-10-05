@@ -1,0 +1,78 @@
+{
+  "settleMs": 2500,
+  "debug": false,
+  "rules": [
+    {
+      "name": "firefox-private",
+      "match": {
+        "wmClass": "^firefox-esr$",
+        "title": "Приватный просмотр|Private Browsing"
+      },
+      "workspace": 8
+    },
+    {
+      "name": "vscode-containers",
+      "match": {
+        "wmClass": "^code$",
+        "title": " - containers - Visual Studio Code$"
+      },
+      "workspace": 4
+    },
+    {
+      "name": "vscode-web-extensions",
+      "match": {
+        "wmClass": "^code$",
+        "title": " - web-extensions - Visual Studio Code$"
+      },
+      "workspace": 4
+    },
+    {
+      "name": "pdf-pinned",
+      "match": {
+        "wmClass": "^Evince$",
+        "title": "^Building-Evolutionary-Architectures\\.pdf"
+      },
+      "workspace": 9
+    },
+    {
+      "name": "code",
+      "match": { "appId": "^code\\.desktop$" },
+      "workspace": 1
+    },
+    {
+      "name": "firefox",
+      "match": { "appId": "^firefox-esr\\.desktop$" },
+      "workspace": 2
+    },
+    {
+      "name": "kitty",
+      "match": { "appId": "^kitty\\.desktop$" },
+      "workspace": 3
+    },
+    {
+      "name": "telegram",
+      "match": { "appId": "^org\\.telegram\\.desktop\\." },
+      "workspace": 5
+    },
+    {
+      "name": "hiddify",
+      "match": { "appId": "^hiddify\\.desktop$" },
+      "workspace": 5
+    },
+    {
+      "name": "amnezia",
+      "match": { "appId": "^AmneziaVPN\\.desktop$" },
+      "workspace": 5
+    },
+    {
+      "name": "obsidian",
+      "match": { "appId": "^obsidian\\.desktop$" },
+      "workspace": 6
+    },
+    {
+      "name": "lm-studio",
+      "match": { "appId": "^lm-studio\\.desktop$" },
+      "workspace": 7
+    }
+  ]
+}

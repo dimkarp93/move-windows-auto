@@ -1,0 +1,8 @@
+{
+  "uuid": "move-windows-auto@dimkarp93",
+  "name": "Move Windows Auto",
+  "description": "Move windows to specific workspaces using rules over window title, class, role, geometry and command line — not just the application.",
+  "shell-version": ["43", "44"],
+  "version": 3,
+  "url": "https://github.com/dimkarp93/move-windows-auto"
+}

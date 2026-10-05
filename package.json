@@ -1,0 +1,12 @@
+{
+  "name": "move-windows-auto",
+  "private": true,
+  "type": "module",
+  "description": "Development tooling only; the extension itself has no npm dependencies.",
+  "scripts": {
+    "lint": "eslint src tests tools"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  }
+}

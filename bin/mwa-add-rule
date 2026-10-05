@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/.." && pwd)"
+config="$HOME/.config/move-windows-auto/rules.json"
+name=""
+workspace=""
+file="$config"
+keep_title=0
+inspect_args=()
+
+usage() {
+    cat <<'USAGE'
+mwa-add-rule - add a rule for a window to rules.json
+
+usage: mwa-add-rule -n NAME -w WORKSPACE [-f FILE] [-t] [-d SECONDS] [-i ID] [-b]
+
+  -n NAME      rule name, must be unique in the file
+  -w WORKSPACE target workspace, 1 or more
+  -f FILE      file to edit (default: ~/.config/move-windows-auto/rules.json);
+               pass rules.default.json to edit the one in the repository
+  -t           keep the window title in the match (dropped by default,
+               it usually changes while the window lives)
+  -d SECONDS   wait before reading the window, so you can focus it
+  -i ID        inspect this X11 window id (see mwa-inspect)
+  -b           ask the extension over D-Bus (see mwa-inspect)
+  -h           show this help
+
+A rule with the same match replaces the existing one in place. A rule with
+more predicates is placed above the more general rule of the same window.
+The result is checked the way the extension does it before it is written.
+When the live config is edited, the extension is asked to reload it.
+USAGE
+}
+
+while getopts ':n:w:f:td:i:bh' opt; do
+    case "$opt" in
+        n) name="$OPTARG" ;;
+        w) workspace="$OPTARG" ;;
+        f) file="$OPTARG" ;;
+        t) keep_title=1 ;;
+        d) inspect_args+=(-d "$OPTARG") ;;
+        i) inspect_args+=(-i "$OPTARG") ;;
+        b) inspect_args+=(-b) ;;
+        h) usage; exit 0 ;;
+        *) usage >&2; exit 2 ;;
+    esac
+done
+
+[ -n "$name" ] || { echo "mwa-add-rule: -n NAME is required" >&2; exit 2; }
+[[ "$workspace" =~ ^[1-9][0-9]*$ ]] || { echo "mwa-add-rule: -w WORKSPACE must be an integer >= 1" >&2; exit 2; }
+command -v gjs >/dev/null || { echo "mwa-add-rule: gjs is required" >&2; exit 1; }
+
+skeleton=$("$root/bin/mwa-inspect" -j ${inspect_args[@]+"${inspect_args[@]}"})
+
+keep_flag=()
+[ "$keep_title" = "1" ] && keep_flag=(-t)
+
+exec gjs -m "$root/tools/mwa.js" add-rule "$file" "$name" "$workspace" "$skeleton" ${keep_flag[@]+"${keep_flag[@]}"}

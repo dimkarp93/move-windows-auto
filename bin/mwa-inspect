@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/.." && pwd)"
+delay=0
+target=""
+use_dbus=0
+json_only=0
+
+if [ "${XDG_SESSION_TYPE:-}" = "wayland" ]; then
+    use_dbus=1
+fi
+
+usage() {
+    cat <<'EOF'
+mwa-inspect - print a move-windows-auto rule skeleton for the focused window
+
+usage: mwa-inspect [-d SECONDS] [-i WINDOW_ID] [-b] [-j]
+
+  -d SECONDS   wait before reading the active window, so you can focus it
+  -i ID        inspect this X11 window id instead of the active one
+  -b           ask the running extension over D-Bus instead of reading X11
+               (chosen automatically in a Wayland session; needs the
+               extension enabled, sees native Wayland windows too)
+  -j           print only the rule skeleton as JSON
+  -h           show this help
+EOF
+}
+
+while getopts ':d:i:bjh' opt; do
+    case "$opt" in
+        d) delay="$OPTARG" ;;
+        i) target="$OPTARG" ;;
+        b) use_dbus=1 ;;
+        j) json_only=1 ;;
+        h) usage; exit 0 ;;
+        *) usage >&2; exit 2 ;;
+    esac
+done
+
+command -v gjs >/dev/null || { echo "mwa-inspect: gjs is required" >&2; exit 1; }
+
+if [ "$use_dbus" = "1" ]; then
+    if [ "$delay" != "0" ]; then
+        echo "focus the target window, reading in ${delay}s..." >&2
+        sleep "$delay"
+    fi
+
+    json_flag=()
+    [ "$json_only" = "1" ] && json_flag=(-j)
+    exec gjs -m "$root/tools/mwa.js" focused ${json_flag[@]+"${json_flag[@]}"}
+fi
+
+if [ -z "${DISPLAY:-}" ]; then
+    echo "mwa-inspect: no DISPLAY, this helper is X11 only (use -b on Wayland)" >&2
+    exit 1
+fi
+
+for tool in xprop xwininfo; do
+    command -v "$tool" >/dev/null || { echo "mwa-inspect: $tool is required" >&2; exit 1; }
+done
+
+if [ "$delay" != "0" ]; then
+    echo "focus the target window, reading in ${delay}s..." >&2
+    sleep "$delay"
+fi
+
+if [ -z "$target" ]; then
+    target=$(xprop -root _NET_ACTIVE_WINDOW | grep -o '0x[0-9a-f]*' | head -1)
+fi
+
+if [ -z "$target" ]; then
+    echo "mwa-inspect: could not determine the active window" >&2
+    exit 1
+fi
+
+props=$(xprop -id "$target" WM_CLASS WM_WINDOW_ROLE _NET_WM_NAME _NET_WM_PID _GTK_APPLICATION_ID 2>/dev/null)
+
+prop_string() {
+    echo "$props" | grep "^$1" | sed -n 's/.*= //p' | sed 's/^"//; s/"$//'
+}
+
+wm_class_raw=$(prop_string 'WM_CLASS')
+wm_class_instance=$(echo "$wm_class_raw" | sed 's/",.*//')
+wm_class=$(echo "$wm_class_raw" | sed 's/.*, "//')
+role=$(prop_string 'WM_WINDOW_ROLE')
+title=$(prop_string '_NET_WM_NAME')
+gtk_app_id=$(prop_string '_GTK_APPLICATION_ID')
+pid=$(echo "$props" | grep '^_NET_WM_PID' | grep -o '[0-9]*$' || true)
+
+geometry=$(xwininfo -id "$target")
+width=$(echo "$geometry" | sed -n 's/^  Width: *//p')
+height=$(echo "$geometry" | sed -n 's/^  Height: *//p')
+
+cmdline=""
+if [ -n "$pid" ] && [ -r "/proc/$pid/cmdline" ]; then
+    cmdline=$(tr '\0' ' ' < "/proc/$pid/cmdline" | sed 's/ *$//')
+fi
+
+if [ "$json_only" = "1" ]; then
+    exec gjs -m "$root/tools/mwa.js" skeleton -j "$wm_class" "$title"
+fi
+
+cat <<EOF
+observed window $target
+  wmClass          ${wm_class:-<none>}
+  wmClassInstance  ${wm_class_instance:-<none>}
+  role             ${role:-<none>}
+  gtkAppId         ${gtk_app_id:-<none>}
+  title            ${title:-<none>}
+  size             ${width}x${height}
+  pid              ${pid:-<none>}
+  cmdline          ${cmdline:-<none>}
+EOF
+
+gjs -m "$root/tools/mwa.js" skeleton "$wm_class" "$title"
+
+if [ -z "$title" ]; then
+    echo
+    echo "note: this window has no title, match it by class or role instead" >&2
+fi
