@@ -3,6 +3,6 @@
   "name": "Move Windows Auto",
   "description": "Move windows to specific workspaces using rules over window title, class, role, geometry and command line — not just the application.",
   "shell-version": ["45", "46", "47", "48"],
-  "version": 3,
+  "version": 4,
   "url": "https://github.com/dimkarp93/move-windows-auto"
 }
