@@ -166,7 +166,7 @@ just doctor                                   # версия shell, выбран
 |---|---|
 | `just dev` | `test`, `install`, `seed-config`, включение, `restart` |
 | `just reload` | `test` и `restart` после правок в `src/` |
-| `just install` / `just uninstall` | симлинк подходящей сборки в каталог расширений / отключение и снятие симлинка |
+| `just install` / `just uninstall` | симлинк подходящей сборки в каталог расширений / отключение и удаление (симлинк снимается, установка из zip удаляется через `gnome-extensions uninstall`) |
 | `just seed-config` | создать `rules.json` из `rules.default.json`, если его нет |
 | `just restart` | перезапустить shell (X11 с unsafe-mode) |
 | `just prefs` | открыть окно настроек |

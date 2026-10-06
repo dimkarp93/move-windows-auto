@@ -335,7 +335,7 @@ just doctor
 just uninstall
 ```
 
-Отключает расширение и удаляет симлинк. Файл `~/.config/move-windows-auto/rules.json` не трогается. Штатное `auto-move-windows` при желании включите обратно:
+Отключает и удаляет расширение: снимает симлинк после `just dev` или удаляет установку из архива. Код остаётся загруженным в shell до его перезапуска (X11: `Alt+F2`, `r`; Wayland: перелогин). Файл `~/.config/move-windows-auto/rules.json` не трогается. Штатное `auto-move-windows` при желании включите обратно:
 
 ```sh
 gnome-extensions enable auto-move-windows@gnome-shell-extensions.gcampax.github.com

@@ -72,15 +72,22 @@ install: build
     echo "linked {{target}} -> {{root}}/build/{{flavour}}"
 
 [group('3. Локальная разработка')]
-[doc('Отключить расширение и снять симлинк')]
+[doc('Отключить и удалить расширение: снять симлинк или удалить установку из zip')]
 uninstall:
     #!/usr/bin/env bash
     set -euo pipefail
     gnome-extensions disable "{{uuid}}" 2>/dev/null || true
     if [ -L "{{target}}" ]; then
         rm "{{target}}"
-        echo "removed {{target}}"
+        echo "removed link {{target}}"
+    elif [ -d "{{target}}" ]; then
+        gnome-extensions uninstall "{{uuid}}"
+        echo "uninstalled {{target}}"
+    else
+        echo "{{uuid}} is not installed in {{target}}"
+        exit 0
     fi
+    echo "the code stays loaded until gnome-shell restarts: Alt+F2, r on X11, log out and in on Wayland"
 
 [group('3. Локальная разработка')]
 [doc('Создать ~/.config/move-windows-auto/rules.json, если его нет')]
